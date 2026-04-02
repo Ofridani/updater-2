@@ -1,0 +1,17 @@
+{
+  "name": "common",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "class-validator": "^0.14.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "updater",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo for alert management and broadcasting across earth, water, fire, and air systems.",
+  "packageManager": "pnpm@10.7.0",
+  "scripts": {
+    "dev:zone": "pnpm --filter updater-zone dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev:components": "pnpm --filter component dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}

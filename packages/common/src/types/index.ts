@@ -25,3 +25,12 @@ export interface Alert {
   scheduledEnd?: Date;
   updatedAt?: Date;
 }
+
+export interface ActiveAlert {
+  id: ObjectId;
+  title: string;
+  impact: string;
+  streams: AlertStream[];
+  createdAt: Date;
+  alerts: Alert[];
+}

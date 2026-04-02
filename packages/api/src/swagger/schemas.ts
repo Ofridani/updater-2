@@ -46,6 +46,41 @@ export const alertSchema = {
   }
 };
 
+export const activeAlertSchema = {
+  type: 'object',
+  required: ['id', 'title', 'impact', 'streams', 'createdAt', 'alerts'],
+  properties: {
+    id: objectIdSchema,
+    title: { type: 'string', example: 'Earth sync incident' },
+    impact: { type: 'string', example: 'Users may see failed EARTH actions until the fix is deployed.' },
+    streams: {
+      type: 'array',
+      items: { type: 'string', enum: Object.values(AlertStream) },
+      example: [AlertStream.EARTH]
+    },
+    createdAt: { type: 'string', format: 'date-time' },
+    alerts: {
+      type: 'array',
+      items: alertSchema
+    }
+  }
+};
+
+export const createAlertDtoSchema = {
+  type: 'object',
+  required: ['title', 'impact', 'streams'],
+  properties: {
+    title: { type: 'string' },
+    impact: { type: 'string' },
+    streams: {
+      type: 'array',
+      items: { type: 'string', enum: Object.values(AlertStream) }
+    },
+    message: { type: 'string', nullable: true },
+    publishDate: { type: 'string', format: 'date-time', nullable: true }
+  }
+};
+
 export const createIncidentDtoSchema = {
   type: 'object',
   required: ['title', 'impact', 'streams'],
@@ -61,6 +96,16 @@ export const createIncidentDtoSchema = {
   }
 };
 
+export const updateAlertDtoSchema = {
+  type: 'object',
+  required: ['title'],
+  properties: {
+    title: { type: 'string' },
+    message: { type: 'string', nullable: true },
+    publishDate: { type: 'string', format: 'date-time', nullable: true }
+  }
+};
+
 export const resolveIncidentDtoSchema = {
   type: 'object',
   properties: {
@@ -69,6 +114,8 @@ export const resolveIncidentDtoSchema = {
     resolvedAt: { type: 'string', format: 'date-time', nullable: true }
   }
 };
+
+export const resolveAlertDtoSchema = resolveIncidentDtoSchema;
 
 export const createAlertBaseDtoSchema = {
   type: 'object',

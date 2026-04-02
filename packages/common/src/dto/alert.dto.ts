@@ -1,6 +1,27 @@
 import { ArrayNotEmpty, IsArray, IsEnum, IsISO8601, IsOptional, IsString } from 'class-validator';
 import { AlertStream } from '../enums';
 
+export class CreateAlertDto {
+  @IsString()
+  title!: string;
+
+  @IsString()
+  impact!: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsEnum(AlertStream, { each: true })
+  streams!: AlertStream[];
+
+  @IsOptional()
+  @IsString()
+  message?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  publishDate?: string;
+}
+
 export class CreateIncidentAlertDto {
   @IsString()
   title!: string;
@@ -36,6 +57,8 @@ export class CreateUpdateAlertDto {
   @IsISO8601()
   publishDate?: string;
 }
+
+export class UpdateAlertDto extends CreateUpdateAlertDto {}
 
 export class CreateWarningAlertDto {
   @IsString()
@@ -102,4 +125,18 @@ export class ConvertAlertToIncidentDto {
   @IsOptional()
   @IsISO8601()
   publishDate?: string;
+}
+
+export class ResolveAlertDto {
+  @IsOptional()
+  @IsString()
+  message?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  publishDate?: string;
+
+  @IsOptional()
+  @IsISO8601()
+  resolvedAt?: string;
 }

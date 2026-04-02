@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import {
   CreateIncidentDto,
   CreateUpdateAlertDto,
@@ -7,27 +8,30 @@ import {
   type Alert,
   ResolveIncidentDto
 } from 'common';
-import { randomUUID } from 'node:crypto';
-import { alertingStore } from '../alerting.store';
+import { isValidObjectId, Model } from 'mongoose';
 import { AlertsService } from '../alerts/alerts.service';
+import { mapIncidentDocument } from '../database/mappers';
+import { IncidentDocument, IncidentEntity } from '../database/schemas/incident.schema';
 
 @Injectable()
 export class IncidentsService {
-  constructor(private readonly alertsService: AlertsService) {}
+  constructor(
+    private readonly alertsService: AlertsService,
+    @InjectModel(IncidentEntity.name)
+    private readonly incidentModel: Model<IncidentEntity>
+  ) {}
 
-  createIncident(dto: CreateIncidentDto): { incident: Incident; alert: Alert } {
-    const incident: Incident = {
-      _id: randomUUID(),
+  async createIncident(dto: CreateIncidentDto): Promise<{ incident: Incident; alert: Alert }> {
+    const incidentDocument = (await this.incidentModel.create({
       title: dto.title,
       impact: dto.impact,
       streams: dto.streams,
-      status: IncidentStatus.ACTIVE,
-      createdAt: new Date()
-    };
+      status: IncidentStatus.ACTIVE
+    })) as IncidentDocument;
 
-    alertingStore.incidents.push(incident);
+    const incident = mapIncidentDocument(incidentDocument);
 
-    const alert = this.alertsService.createIncidentAlert(incident._id, {
+    const alert = await this.alertsService.createIncidentAlert(incident._id, {
       title: dto.title,
       message: dto.message,
       streams: dto.streams,
@@ -37,33 +41,43 @@ export class IncidentsService {
     return { incident, alert };
   }
 
-  addIncidentUpdate(incidentId: string, dto: CreateUpdateAlertDto): Alert {
-    this.findByIdOrThrow(incidentId);
+  async addIncidentUpdate(incidentId: string, dto: CreateUpdateAlertDto): Promise<Alert> {
+    await this.findByIdOrThrow(incidentId);
     return this.alertsService.createUpdateAlert(incidentId, dto);
   }
 
-  resolveIncident(incidentId: string, dto: ResolveIncidentDto): { incident: Incident; alert: Alert } {
-    const incident = this.findByIdOrThrow(incidentId);
+  async resolveIncident(
+    incidentId: string,
+    dto: ResolveIncidentDto
+  ): Promise<{ incident: Incident; alert: Alert }> {
+    const incidentDocument = await this.findByIdOrThrow(incidentId);
 
-    incident.status = IncidentStatus.RESOLVED;
-    incident.resolvedAt = dto.resolvedAt ? new Date(dto.resolvedAt) : new Date();
+    incidentDocument.status = IncidentStatus.RESOLVED;
+    incidentDocument.resolvedAt = dto.resolvedAt ? new Date(dto.resolvedAt) : new Date();
+    await incidentDocument.save();
 
-    const alert = this.alertsService.createResolutionAlert(incident, dto);
+    const incident = mapIncidentDocument(incidentDocument);
+    const alert = await this.alertsService.createResolutionAlert(incident, dto);
 
     return { incident, alert };
   }
 
-  getIncidentById(incidentId: string): Incident {
-    return this.findByIdOrThrow(incidentId);
+  async getIncidentById(incidentId: string): Promise<Incident> {
+    const incidentDocument = await this.findByIdOrThrow(incidentId);
+    return mapIncidentDocument(incidentDocument);
   }
 
-  private findByIdOrThrow(incidentId: string): Incident {
-    const incident = alertingStore.incidents.find((item) => item._id === incidentId);
+  private async findByIdOrThrow(incidentId: string): Promise<IncidentDocument> {
+    if (!isValidObjectId(incidentId)) {
+      throw new NotFoundException(`Incident with id ${incidentId} was not found.`);
+    }
+
+    const incident = await this.incidentModel.findById(incidentId).exec();
 
     if (!incident) {
       throw new NotFoundException(`Incident with id ${incidentId} was not found.`);
     }
 
-    return incident;
+    return incident as IncidentDocument;
   }
 }

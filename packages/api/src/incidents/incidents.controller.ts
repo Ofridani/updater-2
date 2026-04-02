@@ -33,7 +33,7 @@ export class IncidentsController {
   @ApiOperation({ summary: 'Create an incident and its first incident alert' })
   @ApiBody({ schema: createIncidentDtoSchema })
   @ApiCreatedResponse({ schema: incidentAndAlertResultSchema })
-  createIncident(@Body() dto: CreateIncidentDto): { incident: Incident; alert: Alert } {
+  createIncident(@Body() dto: CreateIncidentDto): Promise<{ incident: Incident; alert: Alert }> {
     return this.incidentsService.createIncident(dto);
   }
 
@@ -42,7 +42,7 @@ export class IncidentsController {
   @ApiParam({ name: 'id', description: 'Incident id' })
   @ApiBody({ schema: createAlertBaseDtoSchema })
   @ApiCreatedResponse({ schema: alertSchema })
-  addUpdate(@Param('id') id: string, @Body() dto: CreateUpdateAlertDto): Alert {
+  addUpdate(@Param('id') id: string, @Body() dto: CreateUpdateAlertDto): Promise<Alert> {
     return this.incidentsService.addIncidentUpdate(id, dto);
   }
 
@@ -51,10 +51,10 @@ export class IncidentsController {
   @ApiParam({ name: 'id', description: 'Incident id' })
   @ApiBody({ schema: resolveIncidentDtoSchema })
   @ApiOkResponse({ schema: incidentAndAlertResultSchema })
-  resolveIncident(@Param('id') id: string, @Body() dto: ResolveIncidentDto): {
+  resolveIncident(@Param('id') id: string, @Body() dto: ResolveIncidentDto): Promise<{
     incident: Incident;
     alert: Alert;
-  } {
+  }> {
     return this.incidentsService.resolveIncident(id, dto);
   }
 
@@ -62,7 +62,7 @@ export class IncidentsController {
   @ApiOperation({ summary: 'Get incident by id' })
   @ApiParam({ name: 'id', description: 'Incident id' })
   @ApiOkResponse({ schema: incidentSchema })
-  getIncident(@Param('id') id: string): Incident {
+  getIncident(@Param('id') id: string): Promise<Incident> {
     return this.incidentsService.getIncidentById(id);
   }
 }
